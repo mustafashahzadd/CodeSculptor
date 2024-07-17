@@ -13,6 +13,15 @@ if not api_key:
 else:
     client = MistralClient(api_key=api_key)
 
+    def debug_code(code, language):
+        prompt = f"Debug the following {language} code and provide an error-free version:\n\n{code}"
+        response = client.completion(
+            model="codestral-latest",
+            prompt=prompt,
+            max_tokens=512,
+        )
+        return response.choices[0].message.content
+
     def refactor_code(code, language):
         prompt = f"Refactor the following {language} code to improve readability and performance:\n\n{code}"
         response = client.completion(
@@ -53,6 +62,13 @@ else:
     
     code = st.text_area("Enter your code here:", height=400)
 
+    if st.button("Debug Code"):
+        if code and language:
+            debugged_code = debug_code(code, language)
+            st.subheader("Debugged Code")
+            st.code(debugged_code)
+        else:
+            st.warning("Please enter code and select a programming language to debug.")
 
     if st.button("Analyze Code"):
         if code and language:
@@ -80,11 +96,13 @@ else:
             st.warning("Please enter code and select a programming language to download refactored code.")
 
     if st.button("Save Report"):
-        if code and language:
-            analysis = analyze_code(code, language)
-            refactored_code = refactor_code(code, language)
-            report_path = save_report(language, code, analysis, refactored_code)
-            with open(report_path, "r") as file:
-                st.download_button(label="Download Report", data=file.read(), file_name="refactoring_report.txt")
-        else:
-            st.warning("Please enter code and select a programming language to save the report.")
+     if code and language:
+        analysis = analyze_code(code, language)
+        refactored_code = refactor_code(code, language)
+        report_path = save_report(language, code, analysis, refactored_code)
+        with open(report_path, "r") as file:
+            st.download_button(label="Download Report", data=file.read(), file_name="refactoring_report.txt")
+    else:
+        st.warning("Please enter code and select a programming language to save the report.")
+
+st.info("🔨 Work in progress: The tool cannot currently determine if the code is debugged during analysis and refactoring. Use the 'Debug Code' feature for error-free code.")
